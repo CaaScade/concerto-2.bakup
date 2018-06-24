@@ -3,8 +3,10 @@ package compiler
 import (
 	"flag"
 
-	"github.com/golang/glog"
+	_ "github.com/golang/glog"
 	"github.com/spf13/cobra"
+
+	"github.com/koki/concerto/pkg/manager"
 )
 
 var (
@@ -41,6 +43,5 @@ func init() {
 }
 
 func concerto(c *cobra.Command, args []string) error {
-	glog.Info("Compiling...")
-	return nil
+	return manager.Compile(args)
 }
