@@ -1,0 +1,9 @@
+#!/bin/bash
+
+set -e
+
+src_dir=$(dirname $0)
+
+cd $src_dir/..
+
+go build -o concerto github.com/koki/test-lang/cmd/compiler/concerto
