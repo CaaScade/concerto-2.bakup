@@ -2,6 +2,7 @@ package compiler
 
 import (
 	"flag"
+	"fmt"
 
 	_ "github.com/golang/glog"
 	"github.com/spf13/cobra"
@@ -21,6 +22,12 @@ Full documentation available at https://docs.koki.io/concerto
 			return concerto(c, args)
 		},
 		SilenceUsage: true,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
+				return fmt.Errorf("Atleast one input file expected")
+			}
+			return nil
+		},
 		Example: `
 
   # Compile a concerto program

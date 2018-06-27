@@ -1,0 +1,9 @@
+module redis
+
+Cask redis("library/redis")
+redises = redis * 6
+run redises
+
+Cask redis_trib("library/redis-trib")
+redis_trib.cmd = ["redis-trib", (redises[*].ip)...]
+run redis_trib

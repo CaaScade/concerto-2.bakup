@@ -1,0 +1,41 @@
+module redis_lib
+
+imports:
+  cluster
+
+interface app {
+  run()
+}
+
+type redis implements app {
+  image string
+  scale int
+  version string
+}
+
+func redis run() {
+  var img = this.get_image()
+  
+  var redis cask(img)
+  var redis_trib cask(img)
+  
+  redises = redis * this.scale
+  redises.run()
+
+  var ips = redises[*].ip
+  redis_trib.cmd = ["redis-trib", ips...]
+  redis_trib.run()
+}
+
+func redis get_image() {
+  return image + ":" + version
+}
+
+func redis find_in_cluster() {
+  var img = this.get_image()
+  var redis cask(img)
+  var redises = cluster.get(redis)
+  
+  return redises
+}
+

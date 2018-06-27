@@ -1,0 +1,60 @@
+module main
+
+imports:
+  redis_lib
+
+resource redis redis_lib.redis:
+  version: v1.0
+  image: library/redis
+  scale: 6
+
+run redis
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+ * | pipeline
+ * || parallelize
+ * 
+ * a | b | c | d
+ * a || b || c || d
+ * 
+ * cget
+ * cset
+ * 
+ * wait
+ * 
+ * sget
+ * sset
+ * 
+ * run
+ * bgrun
+ * 
+ * var
+ * if
+ * while
+ * for
+ * switch
+ * case
+ * fallthrough
+ *
+ * func
+ * return
+ *
+ * type
+ * interface  
+ * implements 
+ */

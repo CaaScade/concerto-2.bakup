@@ -2,31 +2,180 @@ grammar Concerto;
 
 // PARSER RULES
 
-prog : (statement)+ ;
+prog : packageClause (importDecl)? (topLevelDecl)* EOF ;
 
-statement : declaration
+packageClause : 'module' WS+ IDENTIFIER eos+
+              ;
+
+importDecl : 'imports:' eos ( importSpec )+ (eos)*
+           ;
+
+importSpec : WS* IDENTIFIER eos
+           | WS* IDENTIFIER WS* ':' WS* STRING_LIT eos
+           ;
+
+eos : WS* NEWLINE
+    ;
+
+topLevelDecl : declaration
+             | funcDecl
+             | methodDecl
+             ;
+
+funcDecl : 'func' methodSpec WS* NEWLINE? block ( WS | NEWLINE )* ;
+
+methodDecl : 'func' WS* IDENTIFIER methodSpec WS* NEWLINE? block ( WS | NEWLINE)* ;
+
+block : WS* '{' ( WS | NEWLINE )* ( statement eos ( WS | NEWLINE )* )* '}' ;
+
+statement : statementDecl
           | expression
+          | returnExpr
           ;
 
-declaration : simpleDeclaration
-            | declarationConstructor
+returnExpr : 'return' WS+ expression ;
+
+statementDecl : varDecl
+              ;
+
+expression : primaryExpr
+           | expression WS* (OR | AND | EQ | NE | LT | LE | GT | GE | PLUS | MINUS | BITWISE_OR | CARET | MUL | DIV | REM | LSHIFT | RSHIFT | BITWISE_AND | AND_NOT | ASSIGN ) WS* expression
+					 ;
+
+
+primaryExpr : operand
+            | primaryExpr '.' IDENTIFIER
+						| primaryExpr '.' funcCallSpec
+            | primaryExpr '...'
+            | primaryExpr arraySelection
+            | '[' WS* ( primaryExpr (WS* listItemExpr WS*)* )? WS* ']'
             ;
 
-simpleDeclaration : IDENTIFIER IDENTIFIER NEWLINE ;
+listItemExpr : ',' WS* primaryExpr ;
 
-declarationConstructor : IDENTIFIER IDENTIFIER '(' arg ( ',' arg )*  ')' NEWLINE ;
+arraySelection : '[' WS* (primaryExpr | star ) WS* ']' ;
 
-arg : IDENTIFIER | STRING_LIT ;
+operand
+    : funcCallSpec
+    | operandName
+    | '(' WS* expression WS* ')'
+    | literal
+    ;
 
-expression : IDENTIFIER IDENTIFIER NEWLINE ;
+literal
+    : basicLit
+    //| functionLit
+    ;
+
+basicLit
+    : INT_LIT
+    | FLOAT_LIT
+    | IMAGINARY_LIT
+    | RUNE_LIT
+    | STRING_LIT
+    ;
+
+operandName
+    : IDENTIFIER
+    | qualifiedIdent
+    ;
+
+qualifiedIdent : IDENTIFIER '.' IDENTIFIER ;
+
+varDecl : 'var' WS+ IDENTIFIER WS* ( IDENTIFIER | funcCallSpec )
+        | 'var' WS+ IDENTIFIER WS* '=' WS* expression
+        ;
+
+declaration : typeDecl eos+
+//            | constDecl
+//            | varDecl
+            ;
+
+typeDecl : structDecl 
+         | interfaceDecl
+         ;
+
+structDecl : 'type' WS+ IDENTIFIER WS* ('implements' ( WS* IDENTIFIER WS* )+ )? WS* NEWLINE? WS* '{' ( WS | NEWLINE )* typeSpec* ( WS | NEWLINE )* '}'
+           ;
+
+typeSpec : WS* IDENTIFIER WS* typeRule eos+
+         ;
+
+interfaceDecl : 'interface' WS+ IDENTIFIER WS* NEWLINE? WS* '{' (WS | NEWLINE )* (methodSpec eos+)* ( WS | NEWLINE )* '}'
+              ;
+
+methodSpec : WS* funcSpec ;
+
+funcCallSpec : IDENTIFIER '(' WS* ( funcCallArg ( ',' funcCallArg )* )? WS* ')' ;
+
+funcCallArg : expression
+            ;
+
+funcSpec : IDENTIFIER '(' WS* ( funcArg ( ',' funcArg )* )? ')' ;
+
+funcArg : WS* IDENTIFIER WS* typeRule WS*
+        | WS* typeRule WS*
+        ;
+
+typeRule : IDENTIFIER
+         | IDENTIFIER '.' IDENTIFIER
+         | arrayType
+         | mapType
+         ;
+
+arrayType : '[' WS* ( IDENTIFIER | INT_LIT | star )?  WS* ']' IDENTIFIER ;
+
+mapType : 'map[' typeRule ']' typeRule ;
+
+star : '*' ;
 
 // LEXICAL ELEMENTS
 
+OR: '||' ;
+
+AND: '&&' ;
+
+EQ : '==' ;
+
+NE : '!=' ;
+
+LT : '<' ;
+
+GT : '>' ;
+
+LE : '<=' ;
+
+GE : '>=' ;
+
+PLUS : '+' ;
+
+MINUS : '-' ;
+
+LSHIFT : '<<' ;
+
+RSHIFT : '>>' ;
+
+CARET : '^' ;
+
+MUL : '*' ;
+
+DIV : '/' ;
+
+REM : '%' ;
+
+ASSIGN : '=' ;
+
+BITWISE_OR : '|' ;
+
+BITWISE_AND : '&' ;
+
+AND_NOT : '&^' ;
+
 IDENTIFIER: LETTER ( LETTER | UNICODE_DIGIT )* ;
 
-STRING_LIT: '"' ( UNICODE_VALUE | BYTE_VALUE )* '"' ;
+STRING_LIT: '"' ( '\\"' | UNICODE_VALUE | BYTE_VALUE )*? '"' ;
 
-WS: [ \t\r]+ -> skip ;
+WS: [ \t\r] ;
 
 NEWLINE: [\u000A] ;
 
@@ -358,12 +507,7 @@ BIG_U_VALUE
 
 //escaped_char     = `\` ( "a" | "b" | "f" | "n" | "r" | "t" | "v" | `\` | "'" | `"` ) .
 fragment ESCAPED_CHAR
-    : '\\' ( 'a' | 'b' | 'f' | 'n' | 'r' | 't' | 'v' | '\\' | '\'' | '"' )
-    ;
-
-//binary_op  = "||" | "&&" | rel_op | add_op | mul_op .
-BINARY_OP
-    : '||' | '&&' | REL_OP | ADD_OP | MUL_OP
+    : '\\' ( 'a' | 'b' | 'f' | 'n' | 'r' | 't' | 'v' | '\\' | '\'')
     ;
 
 //rel_op     = "==" | "!=" | "<" | "<=" | ">" | ">=" .

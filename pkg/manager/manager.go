@@ -10,6 +10,8 @@ func Compile(files []string) error {
 		return err
 	}
 
+	_ = trees
+
 	symTab, err := ExtractSymbolTable(trees)
 	if err != nil {
 		return err

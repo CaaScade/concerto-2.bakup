@@ -2,6 +2,7 @@ package manager
 
 import (
 	"github.com/koki/concerto/pkg/symtab"
+	"github.com/koki/concerto/pkg/util"
 
 	"github.com/antlr/antlr4/runtime/Go/antlr"
 )
@@ -12,17 +13,18 @@ func ExtractSymbolTable(trees []antlr.ParserRuleContext) (symtab.SymbolTable, er
 
 	// generate symbol table
 	for _, tree := range trees {
-		tab := tree.Accept(symTabVisitor)
-		//TODO: Error context for visitors
+		visitorContext := tree.Accept(symTabVisitor)
+		if err := visitorContext.(util.VisitorContext).Error(); err != nil {
+			return nil, err
+		}
+
+		//tab := visitorContext.(symtab.SymbolTable)
+
+		//var err error
+		//symTab, err = symTab.Append(tab.(symtab.SymbolTable))
 		//if err != nil {
 		//	return nil, err
 		//}
-
-		var err error
-		symTab, err = symTab.Append(tab.(symtab.SymbolTable))
-		if err != nil {
-			return nil, err
-		}
 	}
 	return symTab, nil
 }
